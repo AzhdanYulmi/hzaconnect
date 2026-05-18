@@ -311,6 +311,11 @@ widget bundle small). English + Turkish out of the box.
   runs migrations + seed, brings up the stack, waits for TLS
 - `hzaconnect` CLI: install / update / doctor / status / logs / restart /
   backup / restore / embed / shell / env / version / uninstall
+- `--no-tls` install flag for localhost / behind-tunnel (cloudflared) installs:
+  Caddy serves HTTP instead of HTTPS, no LE cert acquisition. `SITE_ADDR` env
+  var in `.env` controls Caddy's listen address (`http://localhost` vs the
+  default `https://${DOMAIN}`). doctor.sh auto-detects HTTP mode from
+  PUBLIC_ORIGIN and skips DNS / cert checks accordingly.
 - `hzaconnect doctor`: 4-scope diagnostic (env validity, license server
   reachability + key match + heartbeat state, container health + migrations
   + TLS cert on disk, external DNS + HTTPS reachability + widget CORS + cert

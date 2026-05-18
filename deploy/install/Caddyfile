@@ -5,7 +5,7 @@
 	email {$ACME_EMAIL}
 }
 
-{$DOMAIN} {
+{$SITE_ADDR} {
 	encode gzip zstd
 
 	# Widget loader: tiny JS, served with permissive CORS so the casino's

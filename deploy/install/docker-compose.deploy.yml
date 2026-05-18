@@ -100,8 +100,10 @@ services:
       - "443:443"
       - "443:443/udp"
     environment:
-      DOMAIN: ${DOMAIN}
-      ACME_EMAIL: ${ACME_EMAIL}
+      # SITE_ADDR controls scheme + TLS: https://example.com (default) gets auto-TLS;
+      # http://localhost or http://${DOMAIN} disables TLS for localhost / behind-tunnel installs.
+      SITE_ADDR: ${SITE_ADDR:-https://${DOMAIN}}
+      ACME_EMAIL: ${ACME_EMAIL:-}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
