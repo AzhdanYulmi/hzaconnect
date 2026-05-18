@@ -114,8 +114,9 @@ prompt() {
 # Defuse the most common transmission hazards: CRLF from Windows .env, stray
 # whitespace, and chat-app-added surrounding quotes.
 LICENSE_TOKEN="$(printf '%s' "$LICENSE_TOKEN" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+# hzaconnect tokens are base64url(payload).base64url(signature) — 2 segments.
 seg_count=$(printf '%s' "$LICENSE_TOKEN" | awk -F. '{print NF}')
-[ "$seg_count" = "3" ] || die "license token must have 3 segments (header.payload.signature), got $seg_count. Did chat strip part of it?"
+[ "$seg_count" = "2" ] || die "license token must have 2 segments (payload.signature), got $seg_count. Did chat strip part of it?"
 ok "License token shape valid"
 
 # ---- domain sanity ----

@@ -83,10 +83,10 @@ expected_origin="${TLS_MODE:+https}://$DOMAIN"
 [ "$PUBLIC_ORIGIN" = "$expected_origin" ] && pass "PUBLIC_ORIGIN matches DOMAIN ($PUBLIC_ORIGIN)" \
   || warn "PUBLIC_ORIGIN ($PUBLIC_ORIGIN) does not match expected $expected_origin"
 
-# License token shape
+# License token shape (hzaconnect uses payload.signature — 2 segments)
 seg_count=$(printf '%s' "$LICENSE_TOKEN" | awk -F. '{print NF}')
-[ "$seg_count" = "3" ] && pass "license token has 3 segments" \
-  || fail "license token has $seg_count segments, expected 3" "did chat strip part of the token?"
+[ "$seg_count" = "2" ] && pass "license token has 2 segments" \
+  || fail "license token has $seg_count segments, expected 2" "did chat strip part of the token?"
 
 # CRLF / quote contamination
 case "$LICENSE_TOKEN" in
