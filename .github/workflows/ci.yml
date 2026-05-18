@@ -1,0 +1,240 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "9.12.0"
+
+jobs:
+  # ---------------- Lint, typecheck, unit tests ----------------
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm --filter @hzaconnect/api test
+
+  # ---------------- E2E against the dev stack ----------------
+  # Brings up postgres/redis/minio via compose, runs the API + dashboard
+  # in dev mode, exercises the Playwright suite. Mirrors local development.
+  e2e-dev:
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate dev .env
+        run: |
+          cat > .env <<EOF
+          PUBLIC_ORIGIN=http://localhost
+          POSTGRES_HOST=postgres
+          POSTGRES_PORT=5432
+          POSTGRES_DB=hzaconnect
+          POSTGRES_USER=hzaconnect
+          POSTGRES_PASSWORD=hzaconnect_ci_pw
+          DATABASE_URL=postgres://hzaconnect:hzaconnect_ci_pw@localhost:5432/hzaconnect
+          REDIS_URL=redis://localhost:6379
+          S3_ENDPOINT=http://localhost:9000
+          S3_REGION=us-east-1
+          S3_BUCKET=hzaconnect-attachments
+          S3_ACCESS_KEY=ciaccesskey
+          S3_SECRET_KEY=cisecretkeyatleast24chars
+          S3_FORCE_PATH_STYLE=true
+          S3_PUBLIC_ENDPOINT=http://localhost:9000
+          AUTH_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')
+          WIDGET_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')
+          BOOTSTRAP_ADMIN_EMAIL=admin@example.com
+          BOOTSTRAP_ADMIN_PASSWORD=ci-admin-password-2026
+          BOOTSTRAP_ADMIN_DISPLAY_NAME=Admin
+          API_PORT=3000
+          API_HOST=0.0.0.0
+          API_LOG_LEVEL=warn
+          WIDGET_ALLOWED_ORIGINS=*
+          COOKIE_DOMAIN=
+          NODE_ENV=development
+          EOF
+
+      - name: Boot infra
+        run: docker compose up -d postgres redis minio
+
+      - name: Wait for postgres healthy
+        run: |
+          for i in {1..30}; do
+            if docker compose ps postgres | grep -q healthy; then break; fi
+            sleep 2
+          done
+
+      - name: Migrate + seed
+        run: |
+          pnpm --filter @hzaconnect/api db:migrate
+          pnpm --filter @hzaconnect/api db:seed
+
+      - name: Build widget bundle
+        run: pnpm --filter @hzaconnect/widget build
+
+      - name: Install Playwright browser
+        run: pnpm --filter @hzaconnect/e2e exec playwright install --with-deps chromium
+
+      - name: Start API + dashboard (background)
+        run: |
+          pnpm --filter @hzaconnect/api dev > /tmp/api.log 2>&1 &
+          pnpm --filter @hzaconnect/dashboard dev > /tmp/dashboard.log 2>&1 &
+          # wait for API
+          for i in {1..30}; do
+            curl -fs http://localhost:3000/health && break
+            sleep 1
+          done
+          # wait for dashboard
+          for i in {1..30}; do
+            curl -fs http://localhost:5173/ > /dev/null && break
+            sleep 1
+          done
+
+      - name: Playwright (dev stack)
+        run: pnpm --filter @hzaconnect/e2e exec playwright test --reporter=list
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-dev-report
+          path: |
+            apps/e2e/playwright-report
+            apps/e2e/test-results
+            /tmp/api.log
+            /tmp/dashboard.log
+          if-no-files-found: ignore
+
+  # ---------------- E2E against the production Docker stack ----------------
+  # Builds all images, brings up the full compose stack with nginx, runs the
+  # same Playwright suite through nginx on :8080.
+  e2e-prod:
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install (host) for Playwright
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate prod-validation .env
+        run: |
+          cat > .env <<EOF
+          PUBLIC_ORIGIN=http://localhost:8080
+          POSTGRES_HOST=postgres
+          POSTGRES_PORT=5432
+          POSTGRES_DB=hzaconnect
+          POSTGRES_USER=hzaconnect
+          POSTGRES_PASSWORD=hzaconnect_ci_pw
+          DATABASE_URL=postgres://hzaconnect:hzaconnect_ci_pw@localhost:5432/hzaconnect
+          REDIS_URL=redis://localhost:6379
+          S3_ENDPOINT=http://localhost:9000
+          S3_REGION=us-east-1
+          S3_BUCKET=hzaconnect-attachments
+          S3_ACCESS_KEY=ciaccesskey
+          S3_SECRET_KEY=cisecretkeyatleast24chars
+          S3_FORCE_PATH_STYLE=true
+          S3_PUBLIC_ENDPOINT=http://localhost:9000
+          AUTH_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')
+          WIDGET_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')
+          BOOTSTRAP_ADMIN_EMAIL=admin@example.com
+          BOOTSTRAP_ADMIN_PASSWORD=ci-admin-password-2026
+          BOOTSTRAP_ADMIN_DISPLAY_NAME=Admin
+          API_PORT=3000
+          API_HOST=0.0.0.0
+          API_LOG_LEVEL=warn
+          WIDGET_ALLOWED_ORIGINS=*
+          COOKIE_DOMAIN=
+          NODE_ENV=production
+          EOF
+
+      - name: Build images
+        run: docker compose build api dashboard-build widget-build
+
+      - name: Bring up build containers (populate volumes)
+        run: docker compose up -d dashboard-build widget-build
+
+      - name: Bring up infra + api
+        run: |
+          docker compose up -d postgres redis minio
+          for i in {1..30}; do
+            if docker compose ps postgres | grep -q healthy; then break; fi
+            sleep 2
+          done
+          docker compose up -d api
+          for i in {1..30}; do
+            if docker compose exec -T api node -e "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" 2>/dev/null; then break; fi
+            sleep 2
+          done
+
+      - name: Migrate + seed (in-container)
+        run: |
+          docker compose exec -T api node apps/api/dist/db/migrate.js
+          docker compose exec -T api node apps/api/dist/db/seed.js
+
+      - name: Bring up nginx with dev fixtures overlay
+        run: docker compose -f docker-compose.yml -f docker-compose.dev-fixtures.yml up -d nginx
+
+      - name: Smoke check via nginx
+        run: |
+          curl -fs http://localhost:8080/dashboard/ > /dev/null
+          curl -fs http://localhost:8080/widget.js > /dev/null
+          curl -fs http://localhost:8080/widget/frame.html > /dev/null
+          curl -fs http://localhost:8080/dev/host.html > /dev/null
+
+      - name: Install Playwright browser
+        run: pnpm --filter @hzaconnect/e2e exec playwright install --with-deps chromium
+
+      - name: Playwright (prod stack via nginx)
+        env:
+          HZA_API_BASE: http://localhost:8080
+          HZA_DASHBOARD_BASE: http://localhost:8080/dashboard/
+        run: pnpm --filter @hzaconnect/e2e exec playwright test --reporter=list
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker compose logs --no-color > /tmp/compose.log
+
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-prod-report
+          path: |
+            apps/e2e/playwright-report
+            apps/e2e/test-results
+            /tmp/compose.log
+          if-no-files-found: ignore

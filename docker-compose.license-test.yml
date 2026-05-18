@@ -1,0 +1,14 @@
+# Live licensing against the VPS license server with a short heartbeat
+# for fast suspend/resume feedback during testing.
+services:
+  api:
+    environment:
+      LICENSE_ENFORCEMENT: enabled
+      LICENSE_TOKEN: ${LICENSE_TOKEN}
+      LICENSE_PUBLIC_KEY_PATH: /license-keys/public.pem
+      LICENSE_PUBLIC_KEY_PEM: ""
+      LICENSE_SERVER_URL: https://144-91-84-61.nip.io
+      LICENSE_HEARTBEAT_SECONDS: "30"
+      LICENSE_HEARTBEAT_GRACE_SECONDS: "60"
+    volumes:
+      - ./.license-keys:/license-keys:ro

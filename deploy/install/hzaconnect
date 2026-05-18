@@ -1,0 +1,220 @@
+#!/usr/bin/env bash
+# hzaconnect CLI — single entry point for all install-time and ops commands.
+#
+# Symlink this to /usr/local/bin/hzaconnect for convenience.
+
+set -euo pipefail
+
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+cd "$SCRIPT_DIR"
+
+COMPOSE="docker compose --env-file ./.env -f ./docker-compose.deploy.yml"
+
+usage() {
+  cat <<EOF
+Usage: hzaconnect <command> [args...]
+
+Setup & updates:
+  install [opts]      Run the interactive installer (see: install.sh --help)
+  update [--version T] Pull a new release and apply pending migrations
+  doctor              Run the full diagnostic suite (read-only)
+
+Operations:
+  status              Show service health + license state
+  start [svc]         Start all services (or a specific one)
+  stop  [svc]         Stop all services (or a specific one)
+  restart [svc]       Restart a service (default: api edge)
+  logs <svc>          Tail logs for a service (api, edge, postgres, redis, minio)
+  ps                  docker compose ps passthrough
+
+Data:
+  backup              Snapshot Postgres + MinIO into ./backups/<UTC-timestamp>/
+  restore <dir>       Restore from a backup directory (DESTRUCTIVE)
+
+Convenience:
+  embed               Print the <script> tag to paste into the casino site
+  shell <svc>         Open a shell in a running container
+  env                 Show effective env (secrets redacted)
+  version             Show installed image version
+  uninstall           Tear down everything (DESTRUCTIVE — double-confirms)
+EOF
+}
+
+require_env() {
+  [ -f .env ] || { echo "ERROR: .env not found in $SCRIPT_DIR. Run: hzaconnect install" >&2; exit 1; }
+}
+
+cmd="${1:-}"; shift || true
+
+case "$cmd" in
+  install)
+    exec ./install.sh "$@"
+    ;;
+  update)
+    require_env
+    exec ./update.sh "$@"
+    ;;
+  doctor)
+    require_env
+    exec ./doctor.sh "$@"
+    ;;
+
+  status)
+    require_env
+    $COMPOSE ps
+    echo
+    if $COMPOSE ps api 2>/dev/null | grep -q "running"; then
+      echo "License status:"
+      $COMPOSE exec -T api node -e "fetch('http://localhost:3000/internal/license-status').then(r=>r.text()).then(t=>console.log('  '+t)).catch(e=>console.log('  (endpoint unavailable: '+e.message+')'))" 2>/dev/null || true
+    fi
+    ;;
+
+  start)
+    require_env
+    $COMPOSE up -d "$@"
+    ;;
+  stop)
+    require_env
+    $COMPOSE stop "$@"
+    ;;
+  restart)
+    require_env
+    if [ $# -eq 0 ]; then
+      $COMPOSE restart api edge
+    else
+      $COMPOSE restart "$@"
+    fi
+    ;;
+  logs)
+    require_env
+    [ $# -eq 0 ] && { echo "usage: hzaconnect logs <service>" >&2; exit 2; }
+    $COMPOSE logs -f --tail=200 "$@"
+    ;;
+  ps)
+    require_env
+    $COMPOSE ps "$@"
+    ;;
+
+  backup)
+    require_env
+    # shellcheck disable=SC1091
+    set -a; . ./.env; set +a
+    BACKUP_DIR="${BACKUP_DIR:-./backups}"
+    TS=$(date -u +"%Y%m%dT%H%M%SZ")
+    DEST="$BACKUP_DIR/$TS"
+    mkdir -p "$DEST"
+    echo "==> Postgres dump → $DEST/postgres.dump"
+    $COMPOSE exec -T postgres pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc > "$DEST/postgres.dump"
+    echo "==> MinIO mirror → $DEST/minio/"
+    docker run --rm --network "hzaconnect_default" \
+      -v "$PWD/$DEST:/out" \
+      --entrypoint sh \
+      minio/mc:latest -c "
+        mc alias set local http://minio:9000 '$S3_ACCESS_KEY' '$S3_SECRET_KEY' >/dev/null
+        mc mirror --overwrite --remove local/$S3_BUCKET /out/minio
+      "
+    echo "==> Done: $DEST"
+    du -sh "$DEST"
+    # retention
+    KEEP_DAYS="${BACKUP_KEEP_DAYS:-14}"
+    find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d -mtime +"$KEEP_DAYS" -exec rm -rf {} + 2>/dev/null || true
+    ;;
+
+  restore)
+    require_env
+    [ $# -eq 1 ] || { echo "usage: hzaconnect restore <backup-dir>" >&2; exit 2; }
+    DIR="$1"
+    [ -f "$DIR/postgres.dump" ] || { echo "ERROR: $DIR/postgres.dump not found" >&2; exit 1; }
+    # shellcheck disable=SC1091
+    set -a; . ./.env; set +a
+    read -r -p "About to DROP and recreate database '$POSTGRES_DB'. Type the DB name to confirm: " CONFIRM
+    [ "$CONFIRM" = "$POSTGRES_DB" ] || { echo "Aborted."; exit 1; }
+    echo "==> Stopping api"
+    $COMPOSE stop api
+    echo "==> Recreating database"
+    $COMPOSE exec -T postgres psql -U "$POSTGRES_USER" -d postgres <<SQL
+DROP DATABASE IF EXISTS "$POSTGRES_DB";
+CREATE DATABASE "$POSTGRES_DB";
+SQL
+    echo "==> Restoring postgres"
+    $COMPOSE exec -T postgres pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner --clean --if-exists < "$DIR/postgres.dump"
+    if [ -d "$DIR/minio" ]; then
+      echo "==> Restoring minio"
+      docker run --rm --network "hzaconnect_default" \
+        -v "$PWD/$DIR/minio:/in" \
+        --entrypoint sh \
+        minio/mc:latest -c "
+          mc alias set local http://minio:9000 '$S3_ACCESS_KEY' '$S3_SECRET_KEY' >/dev/null
+          mc mb -p local/$S3_BUCKET || true
+          mc mirror --overwrite --remove /in local/$S3_BUCKET
+        "
+    fi
+    echo "==> Restarting api"
+    $COMPOSE up -d api
+    echo "==> Restore complete"
+    ;;
+
+  embed)
+    require_env
+    DOMAIN=$(grep '^DOMAIN=' .env | cut -d= -f2-)
+    cat <<EOF
+Paste this into the casino's HTML, just before </body>:
+
+  <script src="https://${DOMAIN}/widget.js" async></script>
+
+Optionally pre-identify a returning player:
+
+  <script>
+    window.hzaconnect = window.hzaconnect || {};
+    window.hzaconnect.setIdentifiers = function(){};
+    document.addEventListener('hzaconnect:ready', function () {
+      window.hzaconnect.setIdentifiers([
+        { type: 'player_id', value: 'PLAYER_ID_FROM_YOUR_BACKEND' }
+      ]);
+    });
+  </script>
+  <script src="https://${DOMAIN}/widget.js" async></script>
+EOF
+    ;;
+
+  shell)
+    require_env
+    [ $# -eq 1 ] || { echo "usage: hzaconnect shell <service>" >&2; exit 2; }
+    $COMPOSE exec "$1" sh
+    ;;
+
+  env)
+    require_env
+    awk -F= '/^[A-Z_]+=/ {
+      key=$1; sub(/^[^=]+=/,"",$0); val=$0
+      if (key ~ /PASSWORD|SECRET|TOKEN|KEY/ && length(val) > 4) val=substr(val,1,4) "•••(redacted)"
+      printf "%-32s %s\n", key, val
+    }' .env
+    ;;
+
+  version)
+    require_env
+    grep '^HZA_VERSION=' .env | cut -d= -f2-
+    ;;
+
+  uninstall)
+    require_env
+    read -r -p "This will STOP everything and DELETE all data volumes. Type 'destroy' to confirm: " CONFIRM
+    [ "$CONFIRM" = "destroy" ] || { echo "Aborted."; exit 1; }
+    read -r -p "Are you absolutely sure? Type the domain name to proceed: " CONFIRM2
+    DOMAIN=$(grep '^DOMAIN=' .env | cut -d= -f2-)
+    [ "$CONFIRM2" = "$DOMAIN" ] || { echo "Aborted."; exit 1; }
+    $COMPOSE down -v
+    echo "==> Stopped + volumes removed. Config files left in $SCRIPT_DIR."
+    ;;
+
+  ""|-h|--help|help)
+    usage
+    ;;
+  *)
+    echo "unknown command: $cmd" >&2
+    usage
+    exit 2
+    ;;
+esac

@@ -1,0 +1,184 @@
+{
+  "app": {
+    "title": "hzaconnect",
+    "loading": "Loading…"
+  },
+  "auth": {
+    "signin_heading": "Agent Sign-in",
+    "signin_sub": "Sign in to handle support conversations.",
+    "email": "Email",
+    "password": "Password",
+    "signin": "Sign in",
+    "signing_in": "Signing in…",
+    "invalid": "Invalid email or password",
+    "logout": "Logout"
+  },
+  "header": {
+    "admin": "Admin",
+    "back_to_chat": "Back to chat"
+  },
+  "queue": {
+    "empty": "No conversations yet.",
+    "no_matches": "No conversations match this filter.",
+    "filter_by_tag": "Filter by tag",
+    "filter_all": "All conversations",
+    "unassigned": "unassigned",
+    "reconnecting": "Reconnecting…"
+  },
+  "identifier": {
+    "player_id": "Player ID",
+    "email": "Email",
+    "phone": "Phone",
+    "username": "Username",
+    "custom": "Custom",
+    "source": {
+      "self": "self-declared",
+      "agent": "recorded by agent",
+      "sso": "verified"
+    }
+  },
+  "conversation": {
+    "player_info_heading": "Player info",
+    "no_identifiers": "No identifiers shared yet.",
+    "add_identifier": "+ Add",
+    "save_identifier": "Save",
+    "identifier_kind": "Identifier kind",
+    "identifier_value": "Value",
+    "identifier_custom_label": "Label",
+    "history_count": "{{total}} prior conversations across {{sessions}} sessions with the same identifiers",
+    "history_conversations": "conversations",
+    "add_tag": "+ Tag",
+    "pick_tag": "Pick a tag…",
+    "select_prompt": "Select a conversation from the left.",
+    "claim": "Claim",
+    "claim_failed": "Claim failed: {{error}}",
+    "close": "Close",
+    "close_prompt": "Reason (optional)",
+    "close_failed": "Close failed: {{error}}",
+    "composer_placeholder": "Type a reply…",
+    "composer_claim_first": "Claim to reply",
+    "send": "Send",
+    "is_typing": "{{name}} is typing…",
+    "are_typing": "{{names}} are typing…",
+    "assigned_to": "Assigned to {{name}}",
+    "unassigned": "Unassigned",
+    "status": {
+      "open": "open",
+      "assigned": "assigned",
+      "closed": "closed"
+    }
+  },
+  "attachment": {
+    "max_size_5mb": "Max 5 MB",
+    "only_images": "Only png/jpeg/webp/gif allowed",
+    "presign_failed": "Presign failed",
+    "upload_failed": "Upload failed",
+    "attach_image": "Attach image"
+  },
+  "admin": {
+    "tabs": {
+      "agents": "Agents",
+      "embed": "Embed",
+      "maintenance": "Maintenance",
+      "identification": "Identification",
+      "tags": "Tags"
+    },
+    "tags": {
+      "heading": "Tag library",
+      "intro": "Tags categorise conversations (e.g. 'refund', 'kyc', 'bonus'). Agents apply them to active conversations and filter the queue by tag.",
+      "create_heading": "Create tag",
+      "list_heading": "Tags",
+      "empty": "No tags yet — create one to get started.",
+      "preview": "Preview",
+      "slug": "Slug",
+      "label_en": "Label (English)",
+      "label_tr": "Label (Turkish)",
+      "color": "Color",
+      "create": "Create",
+      "archive": "Archive",
+      "restore": "Restore",
+      "remove": "Remove"
+    },
+    "identification": {
+      "heading": "Identification",
+      "intro": "Configure which identifiers the widget asks players for. All fields are optional unless marked required, and the player can always skip the pre-chat form.",
+      "fields": "Fields shown in the pre-chat card",
+      "no_fields": "No fields configured. The widget will skip the pre-chat card entirely.",
+      "kind": "Kind",
+      "custom_label": "Custom label",
+      "custom_label_placeholder": "(custom kind only)",
+      "label_en": "Label (English)",
+      "label_tr": "Label (Turkish)",
+      "required": "required",
+      "remove": "Remove",
+      "add_field": "+ Add field",
+      "policy": "Policy",
+      "require_before_chat": "Require completed identification before the player can send the first message",
+      "save": "Save settings",
+      "saved": "Saved."
+    },
+    "agents": {
+      "heading": "Agent management",
+      "create_heading": "Create agent",
+      "list_heading": "Agents",
+      "loading": "Loading…",
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "last_seen": "Last seen",
+      "create": "Create",
+      "creating": "Creating…",
+      "create_failed": "Create failed: {{error}}",
+      "update_failed": "Update failed: {{error}}",
+      "disable": "Disable",
+      "enable": "Enable",
+      "active": "active",
+      "disabled": "disabled",
+      "placeholder_email": "email",
+      "placeholder_name": "display name",
+      "placeholder_password": "password (min 12 chars)"
+    },
+    "embed": {
+      "heading": "Embed snippet",
+      "intro": "Send this snippet to the casino's tech team. They paste it into the site's HTML, ideally in <head> or right before </body>. The widget self-contains — no other changes are needed on the casino side.",
+      "configuration": "Configuration",
+      "deployment_id": "Deployment ID",
+      "launcher_position": "Launcher position",
+      "snippet": "Snippet",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "js_api": "JavaScript API",
+      "verify": "Verifying the install"
+    },
+    "maintenance": {
+      "heading": "Maintenance",
+      "intro": "One-shot cleanup actions. Both are also available as a CLI for cron.",
+      "close_stale_heading": "Close stale conversations",
+      "close_stale_explain": "Sets status=closed on any non-closed conversation whose last message is older than the threshold.",
+      "older_than_hours": "Older than (hours):",
+      "close_stale": "Close stale",
+      "prune_heading": "Prune orphan sessions",
+      "prune_explain": "Deletes anonymous (non-SSO) sessions that have no associated conversations and haven't been active for the threshold.",
+      "older_than_days": "Older than (days):",
+      "prune": "Prune sessions",
+      "working": "Working…"
+    }
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "tr": "Türkçe"
+  },
+  "license": {
+    "suspended": "Service suspended."
+  },
+  "notifications": {
+    "toggle": "Notifications",
+    "on": "Notifications on",
+    "off": "Notifications off",
+    "os_denied": "Browser blocked notifications — sound only",
+    "title": "New conversation",
+    "body_anonymous": "Anonymous player"
+  }
+}

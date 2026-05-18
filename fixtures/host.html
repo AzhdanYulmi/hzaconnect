@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Casino Demo (host page)</title>
+    <style>
+      /* Aggressive host CSS — proves Shadow DOM isolation. */
+      * { font-family: "Comic Sans MS", cursive !important; }
+      body { margin: 0; background: linear-gradient(135deg, #1a0033, #000033); color: #fff; min-height: 100vh; }
+      button { background: red !important; border: 4px dashed yellow !important; padding: 20px !important; }
+      iframe { border: 10px dotted magenta !important; }
+      .game { background: rgba(255,255,255,0.05); padding: 24px; margin: 16px; border-radius: 8px; }
+      h1 { font-size: 40px; text-align: center; padding: 20px; }
+    </style>
+  </head>
+  <body>
+    <h1>🎰 Lucky Nines Casino 🎰</h1>
+    <div class="game">
+      <h2>Blackjack Royale</h2>
+      <p>Play our most popular table game.</p>
+      <button onclick="alert('host button still works')">Play now</button>
+    </div>
+    <div class="game">
+      <h2>Roulette</h2>
+      <button onclick="window.hzaconnect && window.hzaconnect.open()">
+        Open support chat (programmatic)
+      </button>
+    </div>
+
+    <!-- Widget embed: this is what a casino adds to its site. The src is
+         intentionally origin-relative so the same fixture works against the
+         dev API (:3000) and the production nginx (:8080 in CI). -->
+    <script
+      src="/widget.js"
+      data-deployment="lucky-nines-demo"
+      data-position="right"
+      async
+    ></script>
+  </body>
+</html>

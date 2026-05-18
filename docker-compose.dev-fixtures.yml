@@ -1,0 +1,8 @@
+# Dev/CI overlay — exposes the host-page fixture and any other dev-only
+# routes needed by the Playwright suite when validating the production
+# Docker stack end-to-end. NOT for casino deployments.
+services:
+  nginx:
+    volumes:
+      - ./deploy/nginx.dev-fixtures.conf:/etc/nginx/locations.d/dev-fixtures.conf:ro
+      - ./fixtures:/srv/fixtures:ro

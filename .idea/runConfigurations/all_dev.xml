@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="all-dev" type="CompoundRunConfigurationType">
+    <toRun name="api (dev)" type="js.build_tools.npm" />
+    <toRun name="dashboard (dev)" type="js.build_tools.npm" />
+    <toRun name="widget (dev)" type="js.build_tools.npm" />
+    <method v="2" />
+  </configuration>
+</component>

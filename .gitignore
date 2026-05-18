@@ -1,0 +1,27 @@
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.vite/
+.env
+.env.local
+*.log
+.DS_Store
+pnpm-debug.log*
+.pnpm-store/
+apps/*/dist/
+apps/*/build/
+packages/*/dist/
+
+# Playwright artifacts
+apps/e2e/test-results/
+apps/e2e/playwright-report/
+apps/e2e/blob-report/
+apps/e2e/.playwright/
+.license-keys/
+
+# License-server local databases (contain real customer records — never commit)
+apps/license-server/data/*.db
+apps/license-server/data/*.db-shm
+apps/license-server/data/*.db-wal

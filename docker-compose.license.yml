@@ -1,0 +1,46 @@
+# Vendor-side stack — runs on YOUR infrastructure, not the casino's.
+# Usage:
+#   1. Configure deploy/.env.license (LICENSE_DOMAIN, ACME_EMAIL).
+#   2. Drop your private/public keypair into apps/license-server/keys/.
+#   3. docker compose -f docker-compose.license.yml --env-file deploy/.env.license up -d --build
+#
+# Caddy fronts the license server with auto-renewing Let's Encrypt TLS so
+# casinos can heartbeat over HTTPS.
+
+services:
+  license-server:
+    build:
+      context: .
+      dockerfile: apps/license-server/Dockerfile
+    restart: unless-stopped
+    env_file: ./apps/license-server/.env
+    environment:
+      DB_PATH: /app/apps/license-server/data/license-server.db
+      LICENSE_PRIVATE_KEY_PATH: /app/apps/license-server/keys/private.pem
+      LICENSE_PUBLIC_KEY_PATH: /app/apps/license-server/keys/public.pem
+    volumes:
+      - license_data:/app/apps/license-server/data
+      - ./apps/license-server/keys:/app/apps/license-server/keys:ro
+    expose:
+      - "4400"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      LICENSE_DOMAIN: ${LICENSE_DOMAIN:?LICENSE_DOMAIN is required}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+    volumes:
+      - ./deploy/Caddyfile.license:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - license-server
+
+volumes:
+  license_data:
+  caddy_data:
+  caddy_config:

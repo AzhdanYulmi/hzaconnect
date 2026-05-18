@@ -1,0 +1,16 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$LICENSE_DOMAIN} {
+	reverse_proxy license-server:4400
+
+	# Strip the upstream's basic-auth realm tweak so browsers don't get
+	# confused if you ever proxy through Cloudflare too.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}

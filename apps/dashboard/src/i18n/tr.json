@@ -1,0 +1,187 @@
+{
+  "_meta": {
+    "review_needed": "Initial AI-assisted Turkish translation. Please have a native speaker review casino-specific terminology before launch."
+  },
+  "app": {
+    "title": "hzaconnect",
+    "loading": "Yükleniyor…"
+  },
+  "auth": {
+    "signin_heading": "Temsilci Girişi",
+    "signin_sub": "Destek görüşmelerini yönetmek için giriş yapın.",
+    "email": "E-posta",
+    "password": "Şifre",
+    "signin": "Giriş yap",
+    "signing_in": "Giriş yapılıyor…",
+    "invalid": "Geçersiz e-posta veya şifre",
+    "logout": "Çıkış yap"
+  },
+  "header": {
+    "admin": "Yönetim",
+    "back_to_chat": "Sohbete dön"
+  },
+  "queue": {
+    "empty": "Henüz görüşme yok.",
+    "no_matches": "Bu filtreyle eşleşen görüşme yok.",
+    "filter_by_tag": "Etikete göre filtrele",
+    "filter_all": "Tüm görüşmeler",
+    "unassigned": "atanmamış",
+    "reconnecting": "Yeniden bağlanıyor…"
+  },
+  "identifier": {
+    "player_id": "Oyuncu Kimliği",
+    "email": "E-posta",
+    "phone": "Telefon",
+    "username": "Kullanıcı adı",
+    "custom": "Özel",
+    "source": {
+      "self": "kendi beyanı",
+      "agent": "temsilci tarafından kaydedildi",
+      "sso": "doğrulanmış"
+    }
+  },
+  "conversation": {
+    "player_info_heading": "Oyuncu bilgileri",
+    "no_identifiers": "Henüz tanımlayıcı paylaşılmadı.",
+    "add_identifier": "+ Ekle",
+    "save_identifier": "Kaydet",
+    "identifier_kind": "Tanımlayıcı türü",
+    "identifier_value": "Değer",
+    "identifier_custom_label": "Etiket",
+    "history_count": "Aynı tanımlayıcılarla {{sessions}} oturumda {{total}} eski görüşme",
+    "history_conversations": "görüşme",
+    "add_tag": "+ Etiket",
+    "pick_tag": "Etiket seçin…",
+    "select_prompt": "Soldan bir görüşme seçin.",
+    "claim": "Üstlen",
+    "claim_failed": "Üstlenme başarısız: {{error}}",
+    "close": "Kapat",
+    "close_prompt": "Sebep (isteğe bağlı)",
+    "close_failed": "Kapatma başarısız: {{error}}",
+    "composer_placeholder": "Yanıt yazın…",
+    "composer_claim_first": "Yanıtlamak için önce üstlenin",
+    "send": "Gönder",
+    "is_typing": "{{name}} yazıyor…",
+    "are_typing": "{{names}} yazıyor…",
+    "assigned_to": "{{name}} kişisine atandı",
+    "unassigned": "Atanmamış",
+    "status": {
+      "open": "açık",
+      "assigned": "atandı",
+      "closed": "kapalı"
+    }
+  },
+  "attachment": {
+    "max_size_5mb": "En fazla 5 MB",
+    "only_images": "Yalnızca png/jpeg/webp/gif",
+    "presign_failed": "Yetkilendirme başarısız",
+    "upload_failed": "Yükleme başarısız",
+    "attach_image": "Görsel ekle"
+  },
+  "admin": {
+    "tabs": {
+      "agents": "Temsilciler",
+      "embed": "Yerleştirme",
+      "maintenance": "Bakım",
+      "identification": "Kimlik",
+      "tags": "Etiketler"
+    },
+    "tags": {
+      "heading": "Etiket kütüphanesi",
+      "intro": "Etiketler görüşmeleri kategorize eder (örn. 'iade', 'kyc', 'bonus'). Temsilciler aktif görüşmelere etiket uygular ve kuyruğu etikete göre filtreleyebilir.",
+      "create_heading": "Etiket oluştur",
+      "list_heading": "Etiketler",
+      "empty": "Henüz etiket yok — başlamak için bir tane oluşturun.",
+      "preview": "Önizleme",
+      "slug": "Anahtar",
+      "label_en": "Etiket (İngilizce)",
+      "label_tr": "Etiket (Türkçe)",
+      "color": "Renk",
+      "create": "Oluştur",
+      "archive": "Arşivle",
+      "restore": "Geri al",
+      "remove": "Kaldır"
+    },
+    "identification": {
+      "heading": "Kimlik bilgileri",
+      "intro": "Widget'ın oyunculardan hangi tanımlayıcıları isteyeceğini yapılandırın. Zorunlu olarak işaretlenmedikçe tüm alanlar isteğe bağlıdır ve oyuncu sohbet öncesi formu her zaman atlayabilir.",
+      "fields": "Sohbet öncesi kartta gösterilen alanlar",
+      "no_fields": "Yapılandırılmış alan yok. Widget sohbet öncesi kartı tamamen atlayacaktır.",
+      "kind": "Tür",
+      "custom_label": "Özel etiket",
+      "custom_label_placeholder": "(yalnızca özel tür için)",
+      "label_en": "Etiket (İngilizce)",
+      "label_tr": "Etiket (Türkçe)",
+      "required": "zorunlu",
+      "remove": "Kaldır",
+      "add_field": "+ Alan ekle",
+      "policy": "Politika",
+      "require_before_chat": "Oyuncu ilk mesajı gönderebilmeden önce kimlik bilgilerinin doldurulmasını zorunlu kıl",
+      "save": "Ayarları kaydet",
+      "saved": "Kaydedildi."
+    },
+    "agents": {
+      "heading": "Temsilci yönetimi",
+      "create_heading": "Temsilci oluştur",
+      "list_heading": "Temsilciler",
+      "loading": "Yükleniyor…",
+      "email": "E-posta",
+      "name": "Ad",
+      "role": "Rol",
+      "status": "Durum",
+      "last_seen": "Son görülme",
+      "create": "Oluştur",
+      "creating": "Oluşturuluyor…",
+      "create_failed": "Oluşturma başarısız: {{error}}",
+      "update_failed": "Güncelleme başarısız: {{error}}",
+      "disable": "Devre dışı bırak",
+      "enable": "Etkinleştir",
+      "active": "etkin",
+      "disabled": "devre dışı",
+      "placeholder_email": "e-posta",
+      "placeholder_name": "görünen ad",
+      "placeholder_password": "şifre (en az 12 karakter)"
+    },
+    "embed": {
+      "heading": "Yerleştirme kodu",
+      "intro": "Bu kodu casino'nun teknik ekibine gönderin. Sitenin HTML'sine, tercihen <head> içine veya </body>'den hemen önce yapıştırırlar. Widget kendi kendine yetkilidir — casino tarafında başka bir değişiklik gerekmez.",
+      "configuration": "Yapılandırma",
+      "deployment_id": "Dağıtım kimliği",
+      "launcher_position": "Başlatıcı konumu",
+      "snippet": "Kod parçacığı",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı!",
+      "js_api": "JavaScript API",
+      "verify": "Kurulumu doğrulama"
+    },
+    "maintenance": {
+      "heading": "Bakım",
+      "intro": "Tek seferlik temizlik işlemleri. Her ikisi de cron için CLI olarak da kullanılabilir.",
+      "close_stale_heading": "Eski görüşmeleri kapat",
+      "close_stale_explain": "Son mesajı eşik değerinden eski olan, kapatılmamış tüm görüşmelerin durumunu 'closed' yapar.",
+      "older_than_hours": "Şu kadar saatten eski:",
+      "close_stale": "Eskileri kapat",
+      "prune_heading": "Yetim oturumları temizle",
+      "prune_explain": "Hiçbir görüşmeyle ilişkili olmayan ve eşik süresince etkin olmayan anonim (SSO olmayan) oturumları siler.",
+      "older_than_days": "Şu kadar günden eski:",
+      "prune": "Oturumları temizle",
+      "working": "Çalışıyor…"
+    }
+  },
+  "language": {
+    "label": "Dil",
+    "en": "English",
+    "tr": "Türkçe"
+  },
+  "license": {
+    "suspended": "Hizmet askıya alındı."
+  },
+  "notifications": {
+    "toggle": "Bildirimler",
+    "on": "Bildirimler açık",
+    "off": "Bildirimler kapalı",
+    "os_denied": "Tarayıcı bildirimleri engelledi — yalnızca ses",
+    "title": "Yeni görüşme",
+    "body_anonymous": "Anonim oyuncu"
+  }
+}

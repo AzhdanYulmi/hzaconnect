@@ -1,0 +1,57 @@
+# Casino-side edge proxy. Replaces deploy/nginx.conf for self-deploy installs.
+# Auto-TLS via Let's Encrypt; static assets baked into /srv in the image.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode gzip zstd
+
+	# Widget loader: tiny JS, served with permissive CORS so the casino's
+	# site can embed it from any origin.
+	handle /widget.js {
+		root * /srv
+		header Cache-Control "public, max-age=60"
+		header Access-Control-Allow-Origin "*"
+		file_server
+	}
+
+	# Widget iframe + assets
+	handle /widget/* {
+		root * /srv
+		header Access-Control-Allow-Origin "*"
+		file_server
+	}
+
+	# REST API
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	# Socket.IO (websocket upgrade negotiated by reverse_proxy automatically)
+	handle /ws {
+		reverse_proxy api:3000
+	}
+	handle /ws/* {
+		reverse_proxy api:3000
+	}
+
+	# Dashboard SPA
+	redir /dashboard /dashboard/ 308
+	handle /dashboard/* {
+		root * /srv
+		try_files {path} /dashboard/index.html
+		file_server
+	}
+
+	# Root → dashboard
+	redir / /dashboard/ 302
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}

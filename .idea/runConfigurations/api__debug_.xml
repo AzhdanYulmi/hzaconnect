@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="api (debug)" type="NodeJSConfigurationType" application-parameters="watch src/index.ts" path-to-js-file="node_modules/.bin/tsx" working-dir="$PROJECT_DIR$/apps/api">
+    <node-interpreter>project</node-interpreter>
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>
